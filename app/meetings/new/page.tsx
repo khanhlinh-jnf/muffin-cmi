@@ -1,66 +1,78 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Progress } from "@/components/ui/progress"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ChevronLeft, Upload, FileVideo, FileAudio, CheckCircle2 } from "lucide-react"
-import { AppNav } from "@/components/app-nav"
+import { useState } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Progress } from "@/components/ui/progress";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  ChevronLeft,
+  Upload,
+  FileVideo,
+  FileAudio,
+  CheckCircle2,
+} from "lucide-react";
+import { AppNav } from "@/components/app-nav";
 
 export default function NewMeetingPage() {
-  const [isDragging, setIsDragging] = useState(false)
-  const [selectedFile, setSelectedFile] = useState<string | null>(null)
-  const [uploadProgress, setUploadProgress] = useState(0)
-  const [showToast, setShowToast] = useState(false)
+  const [isDragging, setIsDragging] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [showToast, setShowToast] = useState(false);
 
   const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(true)
-  }
+    e.preventDefault();
+    setIsDragging(true);
+  };
 
   const handleDragLeave = () => {
-    setIsDragging(false)
-  }
+    setIsDragging(false);
+  };
 
   const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(false)
-    const file = e.dataTransfer.files[0]
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files[0];
     if (file) {
-      setSelectedFile(file.name)
+      setSelectedFile(file.name);
     }
-  }
+  };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+    const file = e.target.files?.[0];
     if (file) {
-      setSelectedFile(file.name)
+      setSelectedFile(file.name);
     }
-  }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     // Mock upload progress
-    setUploadProgress(10)
+    setUploadProgress(10);
     const interval = setInterval(() => {
       setUploadProgress((prev) => {
         if (prev >= 100) {
-          clearInterval(interval)
-          setShowToast(true)
-          setTimeout(() => setShowToast(false), 3000)
-          return 100
+          clearInterval(interval);
+          setShowToast(true);
+          setTimeout(() => setShowToast(false), 3000);
+          return 100;
         }
-        return prev + 10
-      })
-    }, 300)
-  }
+        return prev + 10;
+      });
+    }, 300);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -79,8 +91,12 @@ export default function NewMeetingPage() {
 
         {/* Page Header */}
         <div className="mb-8">
-          <h2 className="text-3xl font-bold tracking-tight">New Meeting from Video</h2>
-          <p className="text-muted-foreground">Upload a video or audio recording to generate meeting insights</p>
+          <h2 className="text-3xl font-bold tracking-tight">
+            New Meeting from Video
+          </h2>
+          <p className="text-muted-foreground">
+            Upload a video or audio recording to generate meeting insights
+          </p>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
@@ -90,7 +106,9 @@ export default function NewMeetingPage() {
               <Card>
                 <CardHeader>
                   <CardTitle>Meeting Details</CardTitle>
-                  <CardDescription>Enter information about your meeting</CardDescription>
+                  <CardDescription>
+                    Enter information about your meeting
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {/* Title */}
@@ -98,7 +116,11 @@ export default function NewMeetingPage() {
                     <Label htmlFor="title">
                       Title <span className="text-destructive">*</span>
                     </Label>
-                    <Input id="title" placeholder="e.g., Q4 Strategy Review" required />
+                    <Input
+                      id="title"
+                      placeholder="e.g., Q4 Strategy Review"
+                      required
+                    />
                   </div>
 
                   {/* Description */}
@@ -127,8 +149,13 @@ export default function NewMeetingPage() {
                   {/* Tags / Project */}
                   <div className="space-y-2">
                     <Label htmlFor="tags">Tags / Project</Label>
-                    <Input id="tags" placeholder="e.g., product, engineering, Q4" />
-                    <p className="text-sm text-muted-foreground">Separate multiple tags with commas</p>
+                    <Input
+                      id="tags"
+                      placeholder="e.g., product, engineering, Q4"
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      Separate multiple tags with commas
+                    </p>
                   </div>
                 </CardContent>
               </Card>
@@ -137,7 +164,9 @@ export default function NewMeetingPage() {
               <Card>
                 <CardHeader>
                   <CardTitle>Upload Recording</CardTitle>
-                  <CardDescription>Drag and drop or browse for your video/audio file</CardDescription>
+                  <CardDescription>
+                    Drag and drop or browse for your video/audio file
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div
@@ -145,7 +174,9 @@ export default function NewMeetingPage() {
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
                     className={`relative rounded-lg border-2 border-dashed transition-colors ${
-                      isDragging ? "border-primary bg-primary/5" : "border-border"
+                      isDragging
+                        ? "border-primary bg-primary/5"
+                        : "border-border"
                     }`}
                   >
                     <input
@@ -165,12 +196,18 @@ export default function NewMeetingPage() {
                       {selectedFile ? (
                         <div className="text-center">
                           <p className="text-sm font-medium">{selectedFile}</p>
-                          <p className="text-xs text-muted-foreground mt-1">Click to change file</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Click to change file
+                          </p>
                         </div>
                       ) : (
                         <div className="text-center">
-                          <p className="text-sm font-medium">Drop your file here or click to browse</p>
-                          <p className="text-xs text-muted-foreground mt-1">Supports MP4, MKV, MP3, WAV formats</p>
+                          <p className="text-sm font-medium">
+                            Drop your file here or click to browse
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Supports MP4, MKV, MP3, WAV formats
+                          </p>
                         </div>
                       )}
                     </label>
@@ -180,7 +217,9 @@ export default function NewMeetingPage() {
                   {uploadProgress > 0 && uploadProgress < 100 && (
                     <div className="mt-4 space-y-2">
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Uploading...</span>
+                        <span className="text-muted-foreground">
+                          Uploading...
+                        </span>
                         <span className="font-medium">{uploadProgress}%</span>
                       </div>
                       <Progress value={uploadProgress} />
@@ -237,13 +276,16 @@ export default function NewMeetingPage() {
 
                 <div className="pt-4 border-t space-y-2">
                   <h4 className="font-semibold">File Size Limits</h4>
-                  <p className="text-muted-foreground">Maximum file size: 2 GB</p>
+                  <p className="text-muted-foreground">
+                    Maximum file size: 2 GB
+                  </p>
                 </div>
 
                 <div className="pt-4 border-t space-y-2">
                   <h4 className="font-semibold">Processing Time</h4>
                   <p className="text-muted-foreground">
-                    Typical processing time is 5-10 minutes per hour of recording. You'll be notified when complete.
+                    Typical processing time is 5-10 minutes per hour of
+                    recording. You'll be notified when complete.
                   </p>
                 </div>
 
@@ -271,13 +313,17 @@ export default function NewMeetingPage() {
                 <CheckCircle2 className="h-5 w-5 text-green-600" />
               </div>
               <div>
-                <p className="font-semibold text-green-900 dark:text-green-100">Meeting created!</p>
-                <p className="text-sm text-green-700 dark:text-green-300">Processing in background...</p>
+                <p className="font-semibold text-green-900 dark:text-green-100">
+                  Meeting created!
+                </p>
+                <p className="text-sm text-green-700 dark:text-green-300">
+                  Processing in background...
+                </p>
               </div>
             </CardContent>
           </Card>
         </div>
       )}
     </div>
-  )
+  );
 }
