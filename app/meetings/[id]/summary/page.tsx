@@ -1,9 +1,22 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   Play,
   Volume2,
@@ -16,8 +29,8 @@ import {
   User,
   Pencil,
   Check,
-} from "lucide-react"
-import Link from "next/link"
+} from "lucide-react";
+import Link from "next/link";
 
 // Mock data
 const mockMeeting = {
@@ -26,22 +39,56 @@ const mockMeeting = {
   owner: "Sarah Chen",
   duration: "45 min",
   participants: [
-    { name: "Sarah Chen", avatar: "/abstract-geometric-shapes.png", initials: "SC" },
+    {
+      name: "Sarah Chen",
+      avatar: "/abstract-geometric-shapes.png",
+      initials: "SC",
+    },
     { name: "Mike Johnson", avatar: "", initials: "MJ" },
     { name: "Emily Rodriguez", avatar: "", initials: "ER" },
     { name: "David Kim", avatar: "", initials: "DK" },
     { name: "Lisa Wang", avatar: "", initials: "LW" },
   ],
-}
+};
 
 const mockChapters = [
-  { number: 1, title: "Introduction and Agenda", duration: "3:24", timestamp: "0:00" },
-  { number: 2, title: "Q3 Performance Review", duration: "8:15", timestamp: "3:24" },
-  { number: 3, title: "Market Analysis & Competitive Landscape", duration: "12:30", timestamp: "11:39" },
-  { number: 4, title: "Q4 Strategic Initiatives", duration: "15:45", timestamp: "24:09" },
-  { number: 5, title: "Budget Allocation Discussion", duration: "7:20", timestamp: "39:54" },
-  { number: 6, title: "Action Items and Next Steps", duration: "3:06", timestamp: "47:14" },
-]
+  {
+    number: 1,
+    title: "Introduction and Agenda",
+    duration: "3:24",
+    timestamp: "0:00",
+  },
+  {
+    number: 2,
+    title: "Q3 Performance Review",
+    duration: "8:15",
+    timestamp: "3:24",
+  },
+  {
+    number: 3,
+    title: "Market Analysis & Competitive Landscape",
+    duration: "12:30",
+    timestamp: "11:39",
+  },
+  {
+    number: 4,
+    title: "Q4 Strategic Initiatives",
+    duration: "15:45",
+    timestamp: "24:09",
+  },
+  {
+    number: 5,
+    title: "Budget Allocation Discussion",
+    duration: "7:20",
+    timestamp: "39:54",
+  },
+  {
+    number: 6,
+    title: "Action Items and Next Steps",
+    duration: "3:06",
+    timestamp: "47:14",
+  },
+];
 
 const mockSummaryPoints = [
   "Q3 exceeded revenue targets by 23%, driven by strong enterprise adoption in healthcare and finance sectors.",
@@ -51,7 +98,7 @@ const mockSummaryPoints = [
   "Engineering team to prioritize API infrastructure and mobile SDK development for Q4 releases.",
   "Marketing to launch new positioning campaign targeting mid-market decision makers in October.",
   "Next quarterly review scheduled for April 2024 with interim check-ins every 3 weeks.",
-]
+];
 
 const mockActionItems = [
   {
@@ -89,22 +136,25 @@ const mockActionItems = [
     dueDate: "Jan 18, 2024",
     status: "in-progress",
   },
-]
+];
 
 const mockDecisions = [
   {
     title: "Q4 Budget Approval",
-    description: "Approved 15% increase in product development budget, totaling $2.3M for Q4.",
+    description:
+      "Approved 15% increase in product development budget, totaling $2.3M for Q4.",
     impact: "High",
   },
   {
     title: "Mid-Market Expansion",
-    description: "Decided to prioritize mid-market segment expansion over enterprise-only focus.",
+    description:
+      "Decided to prioritize mid-market segment expansion over enterprise-only focus.",
     impact: "High",
   },
   {
     title: "Mobile Development Priority",
-    description: "Mobile SDK and enhanced mobile experience moved to P0 priority for Q4.",
+    description:
+      "Mobile SDK and enhanced mobile experience moved to P0 priority for Q4.",
     impact: "Medium",
   },
   {
@@ -112,16 +162,24 @@ const mockDecisions = [
     description: "Greenlit new API partnership program to launch in Q1 2025.",
     impact: "Medium",
   },
-]
+];
 
-export default function SummaryPage({ params }: { params: { id: string } }) {
+export default async function SummaryPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="flex h-16 items-center justify-between px-6">
           <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <Link
+              href="/"
+              className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+            >
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                 <span className="text-sm font-bold">CMI</span>
               </div>
@@ -150,8 +208,13 @@ export default function SummaryPage({ params }: { params: { id: string } }) {
             <div className="flex items-center -space-x-2">
               {mockMeeting.participants.map((participant, i) => (
                 <Avatar key={i} className="h-8 w-8 border-2 border-background">
-                  <AvatarImage src={participant.avatar || "/placeholder.svg"} alt={participant.name} />
-                  <AvatarFallback className="text-xs">{participant.initials}</AvatarFallback>
+                  <AvatarImage
+                    src={participant.avatar || "/placeholder.svg"}
+                    alt={participant.name}
+                  />
+                  <AvatarFallback className="text-xs">
+                    {participant.initials}
+                  </AvatarFallback>
                 </Avatar>
               ))}
             </div>
@@ -173,7 +236,9 @@ export default function SummaryPage({ params }: { params: { id: string } }) {
                       <div className="h-16 w-16 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center mx-auto">
                         <Play className="h-8 w-8 text-white" />
                       </div>
-                      <p className="text-white/80 text-sm">Q4 Product Strategy Review</p>
+                      <p className="text-white/80 text-sm">
+                        Q4 Product Strategy Review
+                      </p>
                     </div>
                   </div>
 
@@ -189,17 +254,31 @@ export default function SummaryPage({ params }: { params: { id: string } }) {
                       {/* Controls */}
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <Button size="icon" variant="ghost" className="h-8 w-8 text-white hover:bg-white/20">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8 text-white hover:bg-white/20"
+                          >
                             <Play className="h-4 w-4" />
                           </Button>
-                          <span className="text-white text-sm font-medium">15:45 / 45:00</span>
+                          <span className="text-white text-sm font-medium">
+                            15:45 / 45:00
+                          </span>
                         </div>
 
                         <div className="flex items-center gap-2">
-                          <Button size="icon" variant="ghost" className="h-8 w-8 text-white hover:bg-white/20">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8 text-white hover:bg-white/20"
+                          >
                             <Volume2 className="h-4 w-4" />
                           </Button>
-                          <Button size="icon" variant="ghost" className="h-8 w-8 text-white hover:bg-white/20">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8 text-white hover:bg-white/20"
+                          >
                             <Maximize className="h-4 w-4" />
                           </Button>
                         </div>
@@ -214,7 +293,9 @@ export default function SummaryPage({ params }: { params: { id: string } }) {
             <Card>
               <CardHeader>
                 <CardTitle>Chapters</CardTitle>
-                <CardDescription>Jump to key moments in the meeting</CardDescription>
+                <CardDescription>
+                  Jump to key moments in the meeting
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
@@ -234,7 +315,11 @@ export default function SummaryPage({ params }: { params: { id: string } }) {
                           <span>{chapter.duration}</span>
                         </div>
                       </div>
-                      <Button variant="ghost" size="sm" className="shrink-0 gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="shrink-0 gap-1"
+                      >
                         Jump
                         <ChevronRight className="h-3 w-3" />
                       </Button>
@@ -258,7 +343,9 @@ export default function SummaryPage({ params }: { params: { id: string } }) {
                 <Card>
                   <CardHeader>
                     <CardTitle>Key Takeaways</CardTitle>
-                    <CardDescription>Main points discussed in this meeting</CardDescription>
+                    <CardDescription>
+                      Main points discussed in this meeting
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <ul className="space-y-3">
@@ -267,7 +354,9 @@ export default function SummaryPage({ params }: { params: { id: string } }) {
                           <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-semibold mt-0.5">
                             {i + 1}
                           </div>
-                          <p className="text-muted-foreground leading-relaxed">{point}</p>
+                          <p className="text-muted-foreground leading-relaxed">
+                            {point}
+                          </p>
                         </li>
                       ))}
                     </ul>
@@ -279,7 +368,9 @@ export default function SummaryPage({ params }: { params: { id: string } }) {
                 <Card>
                   <CardHeader>
                     <CardTitle>Action Items</CardTitle>
-                    <CardDescription>Tasks and assignments from this meeting</CardDescription>
+                    <CardDescription>
+                      Tasks and assignments from this meeting
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <Table>
@@ -306,8 +397,12 @@ export default function SummaryPage({ params }: { params: { id: string } }) {
                                 </Button>
                               </div>
                             </TableCell>
-                            <TableCell className="text-sm">{item.assignee}</TableCell>
-                            <TableCell className="text-sm text-muted-foreground">{item.dueDate}</TableCell>
+                            <TableCell className="text-sm">
+                              {item.assignee}
+                            </TableCell>
+                            <TableCell className="text-sm text-muted-foreground">
+                              {item.dueDate}
+                            </TableCell>
                             <TableCell>
                               {item.status === "completed" ? (
                                 <Badge
@@ -338,19 +433,35 @@ export default function SummaryPage({ params }: { params: { id: string } }) {
                 <Card>
                   <CardHeader>
                     <CardTitle>Key Decisions</CardTitle>
-                    <CardDescription>Important decisions made during the meeting</CardDescription>
+                    <CardDescription>
+                      Important decisions made during the meeting
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
                       {mockDecisions.map((decision, i) => (
-                        <div key={i} className="space-y-2 pb-4 border-b last:border-0 last:pb-0">
+                        <div
+                          key={i}
+                          className="space-y-2 pb-4 border-b last:border-0 last:pb-0"
+                        >
                           <div className="flex items-start justify-between gap-2">
-                            <h4 className="font-semibold text-sm">{decision.title}</h4>
-                            <Badge variant={decision.impact === "High" ? "default" : "secondary"} className="shrink-0">
+                            <h4 className="font-semibold text-sm">
+                              {decision.title}
+                            </h4>
+                            <Badge
+                              variant={
+                                decision.impact === "High"
+                                  ? "default"
+                                  : "secondary"
+                              }
+                              className="shrink-0"
+                            >
                               {decision.impact} Impact
                             </Badge>
                           </div>
-                          <p className="text-sm text-muted-foreground leading-relaxed">{decision.description}</p>
+                          <p className="text-sm text-muted-foreground leading-relaxed">
+                            {decision.description}
+                          </p>
                         </div>
                       ))}
                     </div>
@@ -365,8 +476,13 @@ export default function SummaryPage({ params }: { params: { id: string } }) {
                 <Send className="h-4 w-4" />
                 Send Meeting Report
               </Button>
-              <Button variant="outline" className="w-full gap-2 bg-transparent" size="lg" asChild>
-                <Link href={`/meetings/${params.id}/chat`}>
+              <Button
+                variant="outline"
+                className="w-full gap-2 bg-transparent"
+                size="lg"
+                asChild
+              >
+                <Link href={`/meetings/${id}/chat`}>
                   <MessageSquare className="h-4 w-4" />
                   Open Chatbot for this Meeting
                 </Link>
@@ -376,5 +492,5 @@ export default function SummaryPage({ params }: { params: { id: string } }) {
         </div>
       </main>
     </div>
-  )
+  );
 }

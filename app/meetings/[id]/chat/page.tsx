@@ -1,16 +1,17 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent } from "@/components/ui/card"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Label } from "@/components/ui/label"
-import { ArrowLeft, Send, Sparkles, ExternalLink, Loader2 } from "lucide-react"
-import Link from "next/link"
+import { useState } from "react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useParams } from "next/navigation";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { ArrowLeft, Send, Sparkles, ExternalLink, Loader2 } from "lucide-react";
+import Link from "next/link";
 
 // Mock data
 const mockPastQuestions = [
@@ -19,7 +20,7 @@ const mockPastQuestions = [
   "When is the next sprint review?",
   "Who disagreed with the timeline?",
   "Summarize the discussion about pricing",
-]
+];
 
 const mockMessages = [
   {
@@ -57,36 +58,40 @@ const mockMessages = [
       { text: "David's support statement", timestamp: "16:45" },
     ],
   },
-]
+];
 
 const suggestionChips = [
   "Summarize all decisions",
   "List my action items",
   "What were the main topics?",
   "Show disagreements",
-]
+];
 
-export default function ChatbotPage({ params }: { params: { id: string } }) {
-  const [scope, setScope] = useState("single")
-  const [inputValue, setInputValue] = useState("")
-  const [isThinking, setIsThinking] = useState(false)
-  const [messages, setMessages] = useState(mockMessages)
+export default function ChatbotPage() {
+  const { id } = useParams<{ id: string }>();
+  const [scope, setScope] = useState("single");
+  const [inputValue, setInputValue] = useState("");
+  const [isThinking, setIsThinking] = useState(false);
+  const [messages, setMessages] = useState(mockMessages);
 
   const handleSend = () => {
-    if (!inputValue.trim()) return
+    if (!inputValue.trim()) return;
 
     // Add user message
     const newUserMessage = {
       id: messages.length + 1,
       role: "user" as const,
       content: inputValue,
-      timestamp: new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
-    }
-    setMessages([...messages, newUserMessage])
-    setInputValue("")
+      timestamp: new Date().toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+    };
+    setMessages([...messages, newUserMessage]);
+    setInputValue("");
 
     // Show thinking state
-    setIsThinking(true)
+    setIsThinking(true);
 
     // Simulate bot response
     setTimeout(() => {
@@ -95,24 +100,27 @@ export default function ChatbotPage({ params }: { params: { id: string } }) {
         role: "assistant" as const,
         content:
           "This is a mock response. In production, this would show the AI-generated answer based on meeting transcripts.",
-        timestamp: new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
+        timestamp: new Date().toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
         sources: [{ text: "Relevant segment", timestamp: "25:30" }],
-      }
-      setMessages((prev) => [...prev, newBotMessage])
-      setIsThinking(false)
-    }, 2000)
-  }
+      };
+      setMessages((prev) => [...prev, newBotMessage]);
+      setIsThinking(false);
+    }, 2000);
+  };
 
   const handleSuggestionClick = (suggestion: string) => {
-    setInputValue(suggestion)
-  }
+    setInputValue(suggestion);
+  };
 
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
         <div className="flex h-16 items-center gap-4 px-6">
-          <Link href={`/meetings/${params.id}/summary`}>
+          <Link href={`/meetings/${id}/summary`}>
             <Button variant="ghost" size="icon">
               <ArrowLeft className="h-5 w-5" />
             </Button>
@@ -123,7 +131,9 @@ export default function ChatbotPage({ params }: { params: { id: string } }) {
             </div>
             <div>
               <h1 className="font-semibold">Meeting Chatbot</h1>
-              <p className="text-xs text-muted-foreground">Q4 Product Strategy Review</p>
+              <p className="text-xs text-muted-foreground">
+                Q4 Product Strategy Review
+              </p>
             </div>
           </div>
         </div>
@@ -158,16 +168,27 @@ export default function ChatbotPage({ params }: { params: { id: string } }) {
                 {scope === "multiple" && (
                   <div className="space-y-3 pt-3 border-t">
                     <div className="space-y-2">
-                      <Label htmlFor="dateRange" className="text-sm font-medium">
+                      <Label
+                        htmlFor="dateRange"
+                        className="text-sm font-medium"
+                      >
                         Date Range
                       </Label>
-                      <Input id="dateRange" type="text" placeholder="Last 30 days" />
+                      <Input
+                        id="dateRange"
+                        type="text"
+                        placeholder="Last 30 days"
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="project" className="text-sm font-medium">
                         Project
                       </Label>
-                      <Input id="project" type="text" placeholder="All projects" />
+                      <Input
+                        id="project"
+                        type="text"
+                        placeholder="All projects"
+                      />
                     </div>
                   </div>
                 )}
@@ -201,27 +222,45 @@ export default function ChatbotPage({ params }: { params: { id: string } }) {
               {messages.map((message) => (
                 <div
                   key={message.id}
-                  className={`flex gap-3 ${message.role === "user" ? "flex-row-reverse" : "flex-row"}`}
+                  className={`flex gap-3 ${
+                    message.role === "user" ? "flex-row-reverse" : "flex-row"
+                  }`}
                 >
                   {/* Avatar */}
                   <Avatar className="h-8 w-8 shrink-0">
                     <AvatarFallback
-                      className={message.role === "assistant" ? "bg-primary text-primary-foreground" : ""}
+                      className={
+                        message.role === "assistant"
+                          ? "bg-primary text-primary-foreground"
+                          : ""
+                      }
                     >
                       {message.role === "assistant" ? "AI" : "You"}
                     </AvatarFallback>
                   </Avatar>
 
                   {/* Message Content */}
-                  <div className={`flex-1 ${message.role === "user" ? "flex justify-end" : ""}`}>
+                  <div
+                    className={`flex-1 ${
+                      message.role === "user" ? "flex justify-end" : ""
+                    }`}
+                  >
                     <div
                       className={`rounded-lg p-4 max-w-[85%] ${
-                        message.role === "user" ? "bg-primary text-primary-foreground ml-auto" : "bg-muted"
+                        message.role === "user"
+                          ? "bg-primary text-primary-foreground ml-auto"
+                          : "bg-muted"
                       }`}
                     >
-                      <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
+                      <p className="text-sm whitespace-pre-wrap leading-relaxed">
+                        {message.content}
+                      </p>
                       <p
-                        className={`text-xs mt-2 ${message.role === "user" ? "text-primary-foreground/70" : "text-muted-foreground"}`}
+                        className={`text-xs mt-2 ${
+                          message.role === "user"
+                            ? "text-primary-foreground/70"
+                            : "text-muted-foreground"
+                        }`}
                       >
                         {message.timestamp}
                       </p>
@@ -229,14 +268,22 @@ export default function ChatbotPage({ params }: { params: { id: string } }) {
                       {/* Sources */}
                       {message.role === "assistant" && message.sources && (
                         <div className="mt-4 space-y-2 border-t pt-3">
-                          <p className="text-xs font-medium text-muted-foreground">Sources:</p>
+                          <p className="text-xs font-medium text-muted-foreground">
+                            Sources:
+                          </p>
                           {message.sources.map((source, idx) => (
                             <div
                               key={idx}
                               className="flex items-center justify-between gap-2 rounded-md bg-background p-2"
                             >
-                              <span className="text-xs flex-1">{source.text}</span>
-                              <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs shrink-0">
+                              <span className="text-xs flex-1">
+                                {source.text}
+                              </span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 gap-1 text-xs shrink-0"
+                              >
                                 <ExternalLink className="h-3 w-3" />
                                 Open at {source.timestamp}
                               </Button>
@@ -253,12 +300,16 @@ export default function ChatbotPage({ params }: { params: { id: string } }) {
               {isThinking && (
                 <div className="flex gap-3">
                   <Avatar className="h-8 w-8 shrink-0">
-                    <AvatarFallback className="bg-primary text-primary-foreground">AI</AvatarFallback>
+                    <AvatarFallback className="bg-primary text-primary-foreground">
+                      AI
+                    </AvatarFallback>
                   </Avatar>
                   <div className="rounded-lg bg-muted p-4">
                     <div className="flex items-center gap-2">
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      <span className="text-sm text-muted-foreground">Thinking...</span>
+                      <span className="text-sm text-muted-foreground">
+                        Thinking...
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -294,12 +345,16 @@ export default function ChatbotPage({ params }: { params: { id: string } }) {
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault()
-                      handleSend()
+                      e.preventDefault();
+                      handleSend();
                     }
                   }}
                 />
-                <Button size="icon" className="h-15 w-15 shrink-0" onClick={handleSend}>
+                <Button
+                  size="icon"
+                  className="h-15 w-15 shrink-0"
+                  onClick={handleSend}
+                >
                   <Send className="h-5 w-5" />
                 </Button>
               </div>
@@ -308,5 +363,5 @@ export default function ChatbotPage({ params }: { params: { id: string } }) {
         </main>
       </div>
     </div>
-  )
+  );
 }
