@@ -1,136 +1,15 @@
+// datasource & generator
 datasource db {
-  provider = "sqlite"
+  provider = "sqlite" // MVP: file:./dev.db  (config trong prisma.config.ts + .env)
 }
-
 
 generator client {
   provider = "prisma-client-js"
 }
 
-model User {
-  id          String   @id @default(uuid())
-  email       String   @unique
-  passwordHash String
-  fullName    String
-  role        Role
-  meetings    Meeting[]        @relation("OwnerMeetings")
-  actionItems ActionItem[]     @relation("AssigneeActionItems")
-  qaLogs      QaLog[]
-
-  meetingParticipants MeetingParticipant[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-
-model Meeting {
-  id          String   @id @default(uuid())
-  title       String
-  description String?
-  owner       User     @relation("OwnerMeetings", fields: [ownerId], references: [id])
-  ownerId     String
-  scheduledAt DateTime?
-  durationMin Int?
-  status      MeetingStatus
-  videoUrl    String?
-  audioUrl    String?
-  summary     String?
-  participants MeetingParticipant[]
-  transcriptChunks TranscriptChunk[]
-  chapters    Chapter[]
-  actionItems ActionItem[]
-  decisions   Decision[]
-  qaLogs      QaLog[]
-  qaSources   QaSource[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-
-model MeetingParticipant {
-  id            String   @id @default(uuid())
-  meeting       Meeting  @relation(fields: [meetingId], references: [id])
-  meetingId     String
-  user          User?    @relation(fields: [userId], references: [id])
-  userId        String?
-  displayName   String
-  roleInMeeting String
-  checkinTime   DateTime?
-}
-
-model TranscriptChunk {
-  id            String   @id @default(uuid())
-  meeting       Meeting  @relation(fields: [meetingId], references: [id])
-  meetingId     String
-  startTime     Float
-  endTime       Float
-  speakerLabel  String
-  text          String
-  emotionScore  Float?
-  emotionLabel  String?
-  createdAt     DateTime @default(now())
-  actionItems   ActionItem[] @relation("ChunkActionItems")
-  decisions     Decision[]   @relation("ChunkDecisions")
-  qaSources     QaSource[]
-}
-
-model Chapter {
-  id          String   @id @default(uuid())
-  meeting     Meeting  @relation(fields: [meetingId], references: [id])
-  meetingId   String
-  orderIndex  Int
-  startTime   Float
-  endTime     Float
-  title       String
-}
-
-model ActionItem {
-  id            String   @id @default(uuid())
-  meeting       Meeting  @relation(fields: [meetingId], references: [id])
-  meetingId     String
-  description   String
-  assignee      User?    @relation("AssigneeActionItems", fields: [assigneeId], references: [id])
-  assigneeId    String?
-  sourceChunk   TranscriptChunk? @relation("ChunkActionItems", fields: [sourceChunkId], references: [id])
-  sourceChunkId String?
-  dueDate       DateTime?
-  status        ActionStatus
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-}
-
-model Decision {
-  id            String   @id @default(uuid())
-  meeting       Meeting  @relation(fields: [meetingId], references: [id])
-  meetingId     String
-  description   String
-  sourceChunk   TranscriptChunk? @relation("ChunkDecisions", fields: [sourceChunkId], references: [id])
-  sourceChunkId String?
-  createdAt     DateTime @default(now())
-}
-
-model QaLog {
-  id        String   @id @default(uuid())
-  meeting   Meeting? @relation(fields: [meetingId], references: [id])
-  meetingId String?
-  user      User     @relation(fields: [userId], references: [id])
-  userId    String
-  question  String
-  answer    String
-  sources   QaSource[]
-  createdAt DateTime @default(now())
-}
-
-model QaSource {
-  id             String          @id @default(uuid())
-  qaLog          QaLog           @relation(fields: [qaLogId], references: [id])
-  qaLogId        String
-  meeting        Meeting         @relation(fields: [meetingId], references: [id])
-  meetingId      String
-  chunk          TranscriptChunk @relation(fields: [chunkId], references: [id])
-  chunkId        String
-  timestampStart Float
-  timestampEnd   Float
-  snippet        String
-}
+// =======================
+// Enums
+// =======================
 
 enum Role {
   employee
@@ -149,4 +28,237 @@ enum ActionStatus {
   todo
   in_progress
   done
+}
+
+// =======================
+// Core models
+// =======================
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  fullName     String
+  role         Role
+
+  // vnFace mapping (optional)
+  faceExternalId String?
+
+  // Relations
+  meetings           Meeting[]           @relation("OwnerMeetings")
+  actionItems        ActionItem[]        @relation("AssigneeActionItems")
+  qaLogs             QaLog[]
+  meetingParticipants MeetingParticipant[]
+  faceProfiles       FaceProfile[]
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Meeting {
+  id               String   @id @default(uuid())
+  title            String
+  description      String?
+  owner            User     @relation("OwnerMeetings", fields: [ownerId], references: [id])
+  ownerId          String
+  scheduledAt      DateTime?
+  durationMin      Int?
+  status           MeetingStatus
+  videoUrl         String?
+  audioUrl         String?
+  summary          String?
+
+  participants     MeetingParticipant[]
+  transcriptChunks TranscriptChunk[]
+  chapters         Chapter[]
+  actionItems      ActionItem[]
+  decisions        Decision[]
+  qaLogs           QaLog[]
+  qaSources        QaSource[]
+  transcriptEmbeddings TranscriptEmbedding[]
+  emotionPoints    EmotionPoint[]
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+// =======================
+// Pre/During meeting: attendance
+// =======================
+
+model MeetingParticipant {
+  id            String   @id @default(uuid())
+  meeting       Meeting  @relation(fields: [meetingId], references: [id])
+  meetingId     String
+  user          User?    @relation(fields: [userId], references: [id])
+  userId        String?
+  displayName   String
+  roleInMeeting String
+  checkinTime   DateTime?
+  source        String?  // 'manual' | 'vnFace' | ...
+
+  @@index([meetingId])
+  @@index([userId])
+}
+
+model FaceProfile {
+  id         String   @id @default(uuid())
+  user       User     @relation(fields: [userId], references: [id])
+  userId     String
+  provider   String   // 'vnFace'
+  externalId String   // id từ hệ thống vnFace
+  createdAt  DateTime @default(now())
+
+  @@unique([provider, externalId])
+  @@index([userId])
+}
+
+// =======================
+// During meeting: transcript, emotion, chapters
+// =======================
+
+model TranscriptChunk {
+  id            String   @id @default(uuid())
+  meeting       Meeting  @relation(fields: [meetingId], references: [id])
+  meetingId     String
+
+  startTime     Float
+  endTime       Float
+  speakerLabel  String
+  text          String
+
+  emotionScore  Float?
+  emotionLabel  String?
+
+  createdAt     DateTime @default(now())
+
+  actionItems   ActionItem[] @relation("ChunkActionItems")
+  decisions     Decision[]   @relation("ChunkDecisions")
+  qaSources     QaSource[]
+  transcriptEmbeddings TranscriptEmbedding[]
+
+  @@index([meetingId])
+  @@index([startTime])
+}
+
+model Chapter {
+  id          String   @id @default(uuid())
+  meeting     Meeting  @relation(fields: [meetingId], references: [id])
+  meetingId   String
+
+  orderIndex  Int
+  startTime   Float
+  endTime     Float
+  title       String
+
+  @@index([meetingId])
+  @@index([orderIndex])
+}
+
+// Optional: time‑series emotion
+model EmotionPoint {
+  id        String   @id @default(uuid())
+  meeting   Meeting  @relation(fields: [meetingId], references: [id])
+  meetingId String
+
+  timeSec   Float
+  score     Float
+  label     String
+
+  @@index([meetingId])
+  @@index([timeSec])
+}
+
+// =======================
+// Post‑meeting: Action items, Decisions
+// =======================
+
+model ActionItem {
+  id            String   @id @default(uuid())
+  meeting       Meeting  @relation(fields: [meetingId], references: [id])
+  meetingId     String
+
+  description   String
+  assignee      User?    @relation("AssigneeActionItems", fields: [assigneeId], references: [id])
+  assigneeId    String?
+
+  sourceChunk   TranscriptChunk? @relation("ChunkActionItems", fields: [sourceChunkId], references: [id])
+  sourceChunkId String?
+
+  dueDate       DateTime?
+  status        ActionStatus
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([meetingId])
+  @@index([assigneeId])
+  @@index([status])
+}
+
+model Decision {
+  id            String   @id @default(uuid())
+  meeting       Meeting  @relation(fields: [meetingId], references: [id])
+  meetingId     String
+
+  description   String
+  sourceChunk   TranscriptChunk? @relation("ChunkDecisions", fields: [sourceChunkId], references: [id])
+  sourceChunkId String?
+
+  createdAt     DateTime @default(now())
+
+  @@index([meetingId])
+}
+
+// =======================
+// Q&A logs + sources + embeddings (RAG)
+// =======================
+
+model QaLog {
+  id        String   @id @default(uuid())
+  meeting   Meeting? @relation(fields: [meetingId], references: [id])
+  meetingId String?
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  question  String
+  answer    String
+  sources   QaSource[]
+  createdAt DateTime @default(now())
+
+  @@index([meetingId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model QaSource {
+  id             String          @id @default(uuid())
+  qaLog          QaLog           @relation(fields: [qaLogId], references: [id])
+  qaLogId        String
+  meeting        Meeting         @relation(fields: [meetingId], references: [id])
+  meetingId      String
+  chunk          TranscriptChunk @relation(fields: [chunkId], references: [id])
+  chunkId        String
+  timestampStart Float
+  timestampEnd   Float
+  snippet        String
+
+  @@index([qaLogId])
+  @@index([meetingId])
+  @@index([chunkId])
+}
+
+// Simple vector store for RAG (MVP)
+model TranscriptEmbedding {
+  id        String           @id @default(uuid())
+  meeting   Meeting          @relation(fields: [meetingId], references: [id])
+  meetingId String
+  chunk     TranscriptChunk  @relation(fields: [chunkId], references: [id])
+  chunkId   String
+
+  vector    String           // JSON string of float[]
+
+  createdAt DateTime         @default(now())
+
+  @@index([meetingId])
+  @@index([chunkId])
 }
