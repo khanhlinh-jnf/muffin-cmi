@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   const formData = await req.formData();
 
   const vnfaceUrl =
@@ -21,7 +21,7 @@ export async function POST(req: Request) {
   if (!text) {
     return NextResponse.json(
       { success: false, message: "Empty response from vnFace" },
-      { status: res.status }
+      { status: res.status },
     );
   }
 
@@ -32,7 +32,7 @@ export async function POST(req: Request) {
   } catch {
     return NextResponse.json(
       { success: false, raw: text },
-      { status: res.status }
+      { status: res.status },
     );
   }
 }

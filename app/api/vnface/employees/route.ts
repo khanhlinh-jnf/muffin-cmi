@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+// app/api/vnface/employees/route.ts
+import { NextRequest, NextResponse } from "next/server";
 import { vnfaceFetch } from "@/lib/vnface";
 
 /* ===== TYPES ===== */
@@ -40,14 +41,15 @@ type EmployeeListResponse = {
 
 /* ===== ROUTE ===== */
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
 
   const startDate = searchParams.get("startDate");
   const endDate = searchParams.get("endDate");
   const keySearch = searchParams.get("keySearch");
 
-  let path = "/checkin-service/external/account/list";
+  // Nếu VNFace thật: base path phải kèm ?page=1&size=50 trước rồi mới gắn &
+  let path = "/checkin-service/external/account/list?page=1&size=50";
 
   if (startDate && endDate) {
     path += `&fromDate=${encodeURIComponent(startDate + "T00:00:00")}`;
@@ -74,7 +76,7 @@ export async function GET(req: Request) {
           imageUrl: e.imageUrl ?? e.avatar ?? null,
           lastUpdate: e.lastUpdate,
           status: e.status,
-        })
+        }),
       ) ?? [];
 
   return NextResponse.json({

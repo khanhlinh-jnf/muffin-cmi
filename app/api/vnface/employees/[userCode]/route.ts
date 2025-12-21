@@ -1,13 +1,18 @@
-import { NextResponse } from "next/server";
-import { vnfaceFetch } from "@/lib/vnface";
+// app/api/vnface/employees/[userCode]/route.ts
+import { NextRequest, NextResponse } from "next/server";
 
+// Hiện tại mock vnFace cho dễ deploy
 export async function GET(
-  _: Request,
-  { params }: { params: { userCode: string } }
+  _req: NextRequest,
+  context: { params: Promise<{ userCode: string }> },
 ) {
-  const data = await vnfaceFetch(
-    `/checkin-service/external/account/${params.userCode}`
-  );
+  const { userCode } = await context.params;
 
-  return NextResponse.json(data);
+  console.log("VNFACE employees mock GET for userCode:", userCode);
+
+  return NextResponse.json({
+    success: true,
+    score: 0.99,
+    reason: "Mock vnFace employee info on Vercel",
+  });
 }
