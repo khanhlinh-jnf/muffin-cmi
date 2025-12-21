@@ -141,12 +141,30 @@ export default function HomePage() {
                 View and manage all your meeting recordings and insights
               </p>
             </div>
-            <Link href="/meetings/new">
-              <Button size="lg" className="gap-2">
-                <Plus className="h-4 w-4" />
-                New Meeting from Video
-              </Button>
-            </Link>
+
+            <div className="flex items-center gap-3">
+              {/* 👥 Employee List */}
+              <Link href="/employees">
+                <Button variant="outline" className="gap-2">
+                  👥 Employees
+                </Button>
+              </Link>
+
+              {/* 🕒 Check-in History */}
+              <Link href="/checkin">
+                <Button variant="outline" className="gap-2">
+                  🕒 Check-in History
+                </Button>
+              </Link>
+
+              {/* ➕ New Meeting */}
+              <Link href="/meetings/new">
+                <Button size="lg" className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  New Meeting from Video
+                </Button>
+              </Link>
+            </div>
           </div>
 
           {/* Filters Section */}
