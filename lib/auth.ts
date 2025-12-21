@@ -1,29 +1,24 @@
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-import { prisma } from "./db";
+// lib/auth.ts
 
-const JWT_SECRET = process.env.JWT_SECRET || "dev-secret";
+export type SessionUser = {
+  id: string;
+  email: string;
+  name: string;
+};
 
-export async function validateUser(email: string, password: string) {
-  const user = await prisma.user.findUnique({ where: { email } });
-  if (!user) return null;
-
-  const ok = await bcrypt.compare(password, user.passwordHash);
-  if (!ok) return null;
-
-  return user;
+export async function getCurrentUser(): Promise<SessionUser | null> {
+  // Mock: luôn trả 1 user cố định
+  return {
+    id: "demo-user",
+    email: "demo@example.com",
+    name: "Demo User",
+  };
 }
 
-export function signToken(userId: string) {
-  return jwt.sign({ sub: userId }, JWT_SECRET, { expiresIn: "7d" });
-}
-
-export async function getUserFromToken(token?: string) {
-  if (!token) return null;
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { sub: string };
-    return prisma.user.findUnique({ where: { id: decoded.sub } });
-  } catch {
-    return null;
+export async function requireUser() {
+  const user = await getCurrentUser();
+  if (!user) {
+    throw new Error("Not authenticated (mock auth).");
   }
+  return user;
 }
