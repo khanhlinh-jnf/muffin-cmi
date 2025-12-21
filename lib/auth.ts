@@ -6,19 +6,38 @@ export type SessionUser = {
   name: string;
 };
 
-export async function getCurrentUser(): Promise<SessionUser | null> {
-  // Mock: luôn trả 1 user cố định
-  return {
-    id: "demo-user",
-    email: "demo@example.com",
-    name: "Demo User",
-  };
+// Mock user cố định
+const demoUser: SessionUser = {
+  id: "demo-user",
+  email: "demo@example.com",
+  name: "Demo User",
+};
+
+// Login: kiểm tra email/password rất đơn giản
+export async function validateUser(email: string, password: string) {
+  if (email === demoUser.email && password === "123456") {
+    return demoUser;
+  }
+  return null;
 }
 
+// Tạo "token" giả
+export function signToken(user: SessionUser) {
+  return `mock-token-for-${user.id}`;
+}
+
+// Đọc user từ token (mock)
+export async function getUserFromToken(_token: string | undefined | null) {
+  // Bỏ qua validate token, luôn trả demoUser nếu có token
+  if (!_token) return null;
+  return demoUser;
+}
+
+// Nếu chỗ khác cần requireUser / requireUserId
 export async function requireUser() {
-  const user = await getCurrentUser();
-  if (!user) {
-    throw new Error("Not authenticated (mock auth).");
-  }
-  return user;
+  return demoUser;
+}
+
+export async function requireUserId() {
+  return demoUser.id;
 }
