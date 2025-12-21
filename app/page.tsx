@@ -1,17 +1,49 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Search, Plus, PlayCircle, FileText, MessageSquare, Camera, CheckCircle2 } from "lucide-react"
-import { AppNav } from "@/components/app-nav"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Search,
+  Plus,
+  PlayCircle,
+  FileText,
+  MessageSquare,
+  Camera,
+  CheckCircle2,
+} from "lucide-react";
+import { AppNav } from "@/components/app-nav";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 // Mock data for meetings
 const mockMeetings = [
@@ -55,42 +87,44 @@ const mockMeetings = [
     status: "ready",
     duration: "50 min",
   },
-]
+];
 
 export default function HomePage() {
-  const [checkInDialogOpen, setCheckInDialogOpen] = useState(false)
-  const [selectedMeetingId, setSelectedMeetingId] = useState<number | null>(null)
-  const [isScanning, setIsScanning] = useState(false)
-  const [isCheckedIn, setIsCheckedIn] = useState(false)
-  const [detectedName, setDetectedName] = useState<string>("")
-  const [checkInTime, setCheckInTime] = useState<string>("")
-  const router = useRouter()
+  const [checkInDialogOpen, setCheckInDialogOpen] = useState(false);
+  const [selectedMeetingId, setSelectedMeetingId] = useState<number | null>(
+    null
+  );
+  const [isScanning, setIsScanning] = useState(false);
+  const [isCheckedIn, setIsCheckedIn] = useState(false);
+  const [detectedName, setDetectedName] = useState<string>("");
+  const [checkInTime, setCheckInTime] = useState<string>("");
+  const router = useRouter();
 
   const handleSimulationClick = (meetingId: number) => {
-    setSelectedMeetingId(meetingId)
-    setCheckInDialogOpen(true)
-    setIsScanning(false)
-    setIsCheckedIn(false)
-    setDetectedName("")
-    setCheckInTime("")
-  }
+    setSelectedMeetingId(meetingId);
+    setCheckInDialogOpen(true);
+    setIsScanning(false);
+    setIsCheckedIn(false);
+    setDetectedName("");
+    setCheckInTime("");
+  };
 
   const handleScanFace = () => {
-    setIsScanning(true)
+    setIsScanning(true);
     // Simulate face scanning with delay
     setTimeout(() => {
-      setIsScanning(false)
-      setIsCheckedIn(true)
-      setDetectedName("Nguyen Van A (demo)")
-      setCheckInTime(new Date().toLocaleTimeString("en-GB"))
-    }, 2000)
-  }
+      setIsScanning(false);
+      setIsCheckedIn(true);
+      setDetectedName("Nguyen Van A (demo)");
+      setCheckInTime(new Date().toLocaleTimeString("en-GB"));
+    }, 2000);
+  };
 
   const handleProceedToSimulation = () => {
     if (selectedMeetingId) {
-      router.push(`/meetings/${selectedMeetingId}/live`)
+      router.push(`/meetings/${selectedMeetingId}/live`);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -103,7 +137,9 @@ export default function HomePage() {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-3xl font-bold tracking-tight">Meetings</h2>
-              <p className="text-muted-foreground">View and manage all your meeting recordings and insights</p>
+              <p className="text-muted-foreground">
+                View and manage all your meeting recordings and insights
+              </p>
             </div>
             <Link href="/meetings/new">
               <Button size="lg" className="gap-2">
@@ -163,8 +199,12 @@ export default function HomePage() {
               <TableBody>
                 {mockMeetings.map((meeting) => (
                   <TableRow key={meeting.id}>
-                    <TableCell className="font-medium">{meeting.title}</TableCell>
-                    <TableCell className="text-muted-foreground">{meeting.time}</TableCell>
+                    <TableCell className="font-medium">
+                      {meeting.title}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {meeting.time}
+                    </TableCell>
                     <TableCell>{meeting.owner}</TableCell>
                     <TableCell>
                       {meeting.status === "processing" ? (
@@ -178,7 +218,9 @@ export default function HomePage() {
                             </TooltipTrigger>
                             <TooltipContent className="max-w-xs">
                               <div className="space-y-1 text-sm">
-                                <p className="font-semibold">Processing Pipeline:</p>
+                                <p className="font-semibold">
+                                  Processing Pipeline:
+                                </p>
                                 <ol className="list-decimal list-inside space-y-0.5">
                                   <li>Speech-to-Text (STT)</li>
                                   <li>Summary Generation</li>
@@ -189,14 +231,19 @@ export default function HomePage() {
                           </Tooltip>
                         </TooltipProvider>
                       ) : meeting.status === "ready" ? (
-                        <Badge variant="default" className="bg-green-500/10 text-green-600 hover:bg-green-500/20">
+                        <Badge
+                          variant="default"
+                          className="bg-green-500/10 text-green-600 hover:bg-green-500/20"
+                        >
                           Ready
                         </Badge>
                       ) : (
                         <Badge variant="destructive">Failed</Badge>
                       )}
                     </TableCell>
-                    <TableCell className="text-muted-foreground">{meeting.duration}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {meeting.duration}
+                    </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
                         <Button
@@ -210,13 +257,23 @@ export default function HomePage() {
                           Simulation
                         </Button>
                         <Link href={`/meetings/${meeting.id}/summary`}>
-                          <Button variant="ghost" size="sm" disabled={meeting.status !== "ready"} className="gap-1.5">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            disabled={meeting.status !== "ready"}
+                            className="gap-1.5"
+                          >
                             <FileText className="h-4 w-4" />
                             Summary
                           </Button>
                         </Link>
                         <Link href={`/meetings/${meeting.id}/chat`}>
-                          <Button variant="ghost" size="sm" disabled={meeting.status !== "ready"} className="gap-1.5">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            disabled={meeting.status !== "ready"}
+                            className="gap-1.5"
+                          >
                             <MessageSquare className="h-4 w-4" />
                             Chatbot
                           </Button>
@@ -236,7 +293,8 @@ export default function HomePage() {
           <DialogHeader>
             <DialogTitle>Face Check-in Required</DialogTitle>
             <DialogDescription>
-              Please scan your face to verify your identity before joining the simulation session.
+              Please scan your face to verify your identity before joining the
+              simulation session.
             </DialogDescription>
           </DialogHeader>
 
@@ -252,12 +310,16 @@ export default function HomePage() {
                 ) : isCheckedIn ? (
                   <div className="space-y-3 text-center">
                     <CheckCircle2 className="mx-auto h-32 w-32 text-green-500" />
-                    <p className="text-sm font-medium text-green-600">Face recognized successfully!</p>
+                    <p className="text-sm font-medium text-green-600">
+                      Face recognized successfully!
+                    </p>
                   </div>
                 ) : (
                   <div className="space-y-3 text-center">
                     <Camera className="mx-auto h-32 w-32 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground">Position your face in the frame</p>
+                    <p className="text-sm text-muted-foreground">
+                      Position your face in the frame
+                    </p>
                   </div>
                 )}
               </div>
@@ -276,17 +338,24 @@ export default function HomePage() {
             {/* Check-in Information */}
             <div className="space-y-2 rounded-lg border bg-muted/50 p-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Detected name:</span>
+                <span className="text-sm text-muted-foreground">
+                  Detected name:
+                </span>
                 <span className="font-medium">{detectedName || "—"}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Check-in time:</span>
+                <span className="text-sm text-muted-foreground">
+                  Check-in time:
+                </span>
                 <span className="font-medium">{checkInTime || "—"}</span>
               </div>
               {isCheckedIn && (
                 <div className="flex items-center justify-between pt-2 border-t">
                   <span className="text-sm text-muted-foreground">Status:</span>
-                  <Badge variant="default" className="bg-green-500/10 text-green-600">
+                  <Badge
+                    variant="default"
+                    className="bg-green-500/10 text-green-600"
+                  >
                     <CheckCircle2 className="mr-1 h-3 w-3" />
                     Checked in
                   </Badge>
@@ -297,17 +366,27 @@ export default function HomePage() {
             {/* Action Buttons */}
             <div className="flex gap-3">
               {!isCheckedIn ? (
-                <Button onClick={handleScanFace} disabled={isScanning} className="flex-1 gap-2">
+                <Button
+                  onClick={handleScanFace}
+                  disabled={isScanning}
+                  className="flex-1 gap-2"
+                >
                   <Camera className="h-4 w-4" />
                   {isScanning ? "Scanning..." : "Scan Face & Check In"}
                 </Button>
               ) : (
-                <Button onClick={handleProceedToSimulation} className="flex-1 gap-2">
+                <Button
+                  onClick={handleProceedToSimulation}
+                  className="flex-1 gap-2"
+                >
                   <PlayCircle className="h-4 w-4" />
                   Proceed to Simulation
                 </Button>
               )}
-              <Button variant="outline" onClick={() => setCheckInDialogOpen(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setCheckInDialogOpen(false)}
+              >
                 Cancel
               </Button>
             </div>
@@ -315,5 +394,5 @@ export default function HomePage() {
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }
