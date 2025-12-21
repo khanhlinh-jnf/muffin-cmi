@@ -56,7 +56,6 @@ export function AppNav() {
         <div className="flex items-center gap-2">
           <Link href="/settings">
             <Avatar className="cursor-pointer hover:opacity-80 transition-opacity">
-              <AvatarImage src="/abstract-geometric-shapes.png" alt="User" />
               <AvatarFallback>JD</AvatarFallback>
             </Avatar>
           </Link>

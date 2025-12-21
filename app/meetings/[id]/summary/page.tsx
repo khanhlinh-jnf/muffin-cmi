@@ -41,7 +41,6 @@ const mockMeeting = {
   participants: [
     {
       name: "Sarah Chen",
-      avatar: "/abstract-geometric-shapes.png",
       initials: "SC",
     },
     { name: "Mike Johnson", avatar: "", initials: "MJ" },

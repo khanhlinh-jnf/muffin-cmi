@@ -1,10 +1,11 @@
 // datasource & generator
 datasource db {
-  provider = "sqlite" // MVP: file:./dev.db  (config trong prisma.config.ts + .env)
+  provider = "sqlite"
 }
 
 generator client {
   provider = "prisma-client-js"
+  engineType = "library" 
 }
 
 // =======================
