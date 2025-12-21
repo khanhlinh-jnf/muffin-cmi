@@ -47,7 +47,7 @@ export async function GET(req: Request) {
   const endDate = searchParams.get("endDate");
   const keySearch = searchParams.get("keySearch");
 
-  let path = "/checkin-service/external/account/list?page=1&maxSize=50";
+  let path = "/checkin-service/external/account/list";
 
   if (startDate && endDate) {
     path += `&fromDate=${encodeURIComponent(startDate + "T00:00:00")}`;

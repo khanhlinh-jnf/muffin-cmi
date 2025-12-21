@@ -15,8 +15,7 @@ export async function GET(req: Request) {
   if (!startDate || !endDate || !isISODate(startDate) || !isISODate(endDate)) {
     return NextResponse.json({ object: { data: [] } });
   }
-  let path =
-    "/checkin-service/external/his-checkin/list-filter?page=1&maxSize=50";
+  let path = "/checkin-service/external/his-checkin/list-filter";
 
   path += `&filterMode=${filterMode}`;
   path += `&startDate=${encodeURIComponent(startDate + "T00:00:00")}`;
