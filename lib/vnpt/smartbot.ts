@@ -5,11 +5,32 @@ const ACCESS_TOKEN = process.env.SMARTBOT_ACCESS_TOKEN!;
 const TOKEN_ID = process.env.SMARTBOT_TOKEN_ID!;
 const TOKEN_KEY = process.env.SMARTBOT_TOKEN_KEY!;
 
+type SmartbotPayload = {
+  question: string;
+  systemPrompt?: string;
+  advancePrompt?: string;
+};
+
+type SmartbotRequestBody = {
+  bot_id: string;
+  sender_id: string;
+  text: string;
+  input_channel: string;
+  session_id: string;
+  metadata: Record<string, unknown>;
+  settings?: {
+    system_prompt?: string;
+    advance_prompt?: string;
+  };
+};
+
 export async function smartbotConversation(
-  question: string,
+  payload: SmartbotPayload,
   sessionId = "cmisession",
 ) {
-  const body = {
+  const { question, systemPrompt, advancePrompt } = payload;
+
+  const body: SmartbotRequestBody = {
     bot_id: BOT_ID,
     sender_id: "123",
     text: question,
@@ -17,6 +38,13 @@ export async function smartbotConversation(
     session_id: sessionId,
     metadata: {},
   };
+
+  if (systemPrompt || advancePrompt) {
+    body.settings = {
+      ...(systemPrompt ? { system_prompt: systemPrompt } : {}),
+      ...(advancePrompt ? { advance_prompt: advancePrompt } : {}),
+    };
+  }
 
   const res = await fetch(SMARTBOT_URL, {
     method: "POST",
@@ -31,7 +59,7 @@ export async function smartbotConversation(
   });
 
   const rawText = await res.text();
-  console.log("SmartBot raw:", rawText.substring(0, 200));
+  console.log("SmartBot raw text:", rawText.substring(0, 500));
 
   if (!res.ok) {
     return {
@@ -40,11 +68,11 @@ export async function smartbotConversation(
     };
   }
 
-  // Parse SSE: nhiều dòng "data:{...}"
   const chunks = rawText
     .split("\n")
-    .filter((line) => line.trim().startsWith("data:"))
-    .map((line) => line.trim().slice(5).trim())
+    .map((line) => line.trim())
+    .filter((line) => line.startsWith("data:"))
+    .map((line) => line.slice(5).trim())
     .filter(Boolean);
 
   const cardTexts: string[] = [];
@@ -57,15 +85,27 @@ export async function smartbotConversation(
 
       const cardData = obj.object?.sb?.card_data ?? [];
       for (const card of cardData) {
-        if (card.text) cardTexts.push(card.text);
+        console.log("SmartBot card:", card);
+        if (typeof card.text === "string") cardTexts.push(card.text);
+        if (Array.isArray(card.elements)) {
+          for (const el of card.elements) {
+            if (typeof el.text === "string") cardTexts.push(el.text);
+          }
+        }
       }
     } catch (e) {
-      console.error("Parse chunk error");
+      console.error("Parse chunk error:", jsonStr);
     }
   }
 
-  return {
-    raw: lastObject,
-    answer: cardTexts.filter(Boolean).join("\n\n") || "Không có câu trả lời",
-  };
+  const answer =
+    cardTexts
+      .map((t) => t.trim())
+      .filter(Boolean)
+      .join("\n\n") || "(empty answer)";
+
+  console.log("SmartBot collected texts:", cardTexts);
+  console.log("SmartBot final answer:", answer);
+
+  return { raw: lastObject, answer };
 }

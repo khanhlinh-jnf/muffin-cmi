@@ -1,110 +1,174 @@
+// app/api/meetings/[id]/ask/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { smartbotConversation } from "@/lib/vnpt/smartbot";
-import { getFullTranscript } from "@/lib/transcript";
-import { join } from "path";
+import fs from "fs/promises";
+import path from "path";
 
+// Đọc transcript từ file local (giống log bạn gửi)
+async function getFullTranscript(meetingId: string) {
+  const baseDir = "D:\\UNI_STUDY\\Year3\\Semester1\\VNPT-AI\\muffin-cmi";
+  const transcriptPath = path.join(
+    baseDir,
+    "data",
+    "transcripts",
+    "full",
+    `${meetingId}.txt`,
+  );
+
+  console.log("Transcript path:", transcriptPath);
+  try {
+    const content = await fs.readFile(transcriptPath, "utf8");
+    console.log("Transcript length:", content.length);
+    return content;
+  } catch (e) {
+    console.error("Read transcript error:", e);
+    return "";
+  }
+}
+
+// Gọi SmartBot streaming
+const SMARTBOT_URL = "https://assistant-stream.vnpt.vn/v1/conversation";
+
+const BOT_ID = process.env.SMARTBOT_BOT_ID!;
+const ACCESS_TOKEN = process.env.SMARTBOT_ACCESS_TOKEN!;
+const TOKEN_ID = process.env.SMARTBOT_TOKEN_ID!;
+const TOKEN_KEY = process.env.SMARTBOT_TOKEN_KEY!;
+
+type SmartbotPayload = {
+  question: string;
+  systemPrompt?: string;
+  advancePrompt?: string;
+};
+
+async function smartbotConversation(
+  payload: SmartbotPayload,
+  sessionId: string,
+) {
+  const { question, systemPrompt, advancePrompt } = payload;
+
+  const body: Record<string, unknown> = {
+    bot_id: BOT_ID,
+    sender_id: "123",
+    text: question,
+    input_channel: "livechat",
+    session_id: sessionId,
+    metadata: {},
+  };
+
+  if (systemPrompt || advancePrompt) {
+    body.settings = {
+      ...(systemPrompt ? { system_prompt: systemPrompt } : {}),
+      ...(advancePrompt ? { advance_prompt: advancePrompt } : {}),
+    };
+  }
+
+  const res = await fetch(SMARTBOT_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${ACCESS_TOKEN}`,
+      "Token-id": TOKEN_ID,
+      "Token-key": TOKEN_KEY,
+      "Content-Type": "application/json",
+      Accept: "text/event-stream",
+    },
+    body: JSON.stringify(body),
+  });
+
+  const rawText = await res.text();
+  console.log("SmartBot raw text:", rawText.substring(0, 500));
+
+  const chunks = rawText
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.startsWith("data:"))
+    .map((line) => line.slice(5).trim())
+    .filter(Boolean);
+
+  const cardTexts: string[] = [];
+  let lastObject: Record<string, unknown> | null = null;
+
+  for (const jsonStr of chunks) {
+    try {
+      const obj = JSON.parse(jsonStr);
+      lastObject = obj;
+
+      const cardData = obj.object?.sb?.card_data ?? [];
+      for (const card of cardData) {
+        if (typeof card.text === "string") {
+          cardTexts.push(card.text);
+        }
+        if (Array.isArray(card.elements)) {
+          for (const el of card.elements) {
+            if (typeof el.text === "string") {
+              cardTexts.push(el.text);
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.error("Parse chunk error:", jsonStr);
+    }
+  }
+
+  const answer =
+    cardTexts
+      .map((t) => t.trim())
+      .filter(Boolean)
+      .join("\n\n") || "(empty answer)";
+
+  console.log("SmartBot collected texts:", cardTexts);
+  console.log("SmartBot final answer:", answer);
+
+  if (!res.ok) {
+    return {
+      answer: `SmartBot HTTP ${res.status}: ${answer}`,
+      raw: lastObject ?? rawText,
+    };
+  }
+
+  return { answer, raw: lastObject };
+}
+
+// Next.js Route handler
 export async function POST(
   req: NextRequest,
-  context: { params: Promise<{ id: string }> },
+  { params }: { params: { id: string } },
 ) {
-  try {
-    // Lấy meetingId từ route params (Next 15: params là Promise)
-    const { id } = await context.params;
+  const id = params.id;
+  const { question } = await req.json();
 
-    console.log("==== /api/meetings/[id]/ask ====");
-    console.log("API /ask meetingId:", id);
+  console.log(">> getFullTranscript meetingId:", id);
+  const transcript = await getFullTranscript(id);
 
-    const body = await req.json();
-    const question: string = body.question ?? "";
-    const scope: "single" | "multiple" = body.scope ?? "single";
-    console.log("Question:", question);
-    console.log("Scope:", scope);
+  const systemPrompt = `
+Bạn là trợ lý AI trả lời câu hỏi về nội dung cuộc họp dựa trên context được truyền từ hệ thống.
+Chỉ dùng thông tin trong context, không bịa thêm.
+  `.trim();
 
-    if (!id) {
-      console.log("Missing meeting id");
-      return NextResponse.json(
-        { error: "Missing meeting id" },
-        { status: 400 },
-      );
-    }
-
-    if (!question.trim()) {
-      console.log("Missing question");
-      return NextResponse.json(
-        { error: "Question is required" },
-        { status: 400 },
-      );
-    }
-
-    // 1) Đọc toàn bộ transcript full cho meeting này
-    const transcript = await getFullTranscript(id);
-    const transcriptPath = join(
-      process.cwd(),
-      "data",
-      "transcripts",
-      "full",
-      `${id}.txt`,
-    );
-    console.log(">> getFullTranscript meetingId:", id);
-    console.log(">> trying transcript file:", transcriptPath);
-    console.log("Transcript length:", transcript.length);
-
-    if (!transcript) {
-      console.log("Transcript empty -> 404");
-      return NextResponse.json(
-        { error: "Transcript not found for this meeting" },
-        { status: 404 },
-      );
-    }
-
-    // 2) Build prompt context cho SmartBot
-    const contextPrompt = `
-Bạn là trợ lý AI chỉ được phép sử dụng thông tin trong transcript sau để trả lời câu hỏi về cuộc họp.
-
-TRANSCRIPT BẮT ĐẦU
+  const advancePrompt = `
+CONTEXT (TRANSCRIPT CUỘC HỌP):
 """
 ${transcript}
 """
-TRANSCRIPT KẾT THÚC
-
-YÊU CẦU TRẢ LỜI:
-- Chỉ dựa trên transcript trên, không tự bịa thêm thông tin.
-- Nếu transcript KHÔNG chứa đủ thông tin để trả lời câu hỏi, phải trả lời đúng câu:
-  "Trong transcript không có thông tin để trả lời câu hỏi này."
-- Trả lời ngắn gọn, rõ ràng, bằng tiếng Việt.
-`;
-
-    // 3) Gửi sang SmartBot: context + câu hỏi
-    const fullQuestion = `
-${contextPrompt}
 
 CÂU HỎI:
 ${question}
 
-CÂU TRẢ LỜI:
-`;
+YÊU CẦU:
+- Trả lời ngắn gọn, rõ ràng, bằng tiếng Việt.
+- Nếu context không đủ thông tin, trả lời: "Trong transcript không có thông tin để trả lời câu hỏi này."
+  `.trim();
 
-    console.log("===== FULL QUESTION SENT TO SMARTBOT =====");
-    console.log(fullQuestion);
-    console.log("==========================================");
+  const result = await smartbotConversation(
+    {
+      question,
+      systemPrompt,
+      advancePrompt,
+    },
+    `meeting-${id}`,
+  );
 
-    const result = await smartbotConversation(
-      fullQuestion,
-      `meeting-${id}`,
-    );
-
-    console.log("SmartBot answer raw:", result.raw);
-
-    // 4) Chưa có sources (vì đang dùng full text), để mảng rỗng
-    return NextResponse.json({
-      answer: result.answer,
-      sources: [],
-    });
-  } catch (error) {
-    console.error("ask with full transcript error:", error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Unknown error" },
-      { status: 500 },
-    );
-  }
+  return NextResponse.json({
+    answer: result.answer,
+    sources: [], // có thể bổ sung sau nếu làm RAG nhiều chunk
+  });
 }
