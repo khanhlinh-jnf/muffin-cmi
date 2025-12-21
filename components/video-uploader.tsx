@@ -31,7 +31,7 @@ export default function VideoUploader({ meetingId, onUploadComplete }: { meeting
         <Upload className="h-8 w-8 text-slate-400" />
       </div>
       <h3 className="text-lg font-medium text-white mb-2">Upload Meeting Video</h3>
-      <p className="text-sm text-slate-400 mb-6">Support MP4, WebM (Max 50MB)</p>
+      <p className="text-sm text-slate-400 mb-6">Support MP4, WebM (Max 25MB)</p>
       
       <div className="relative">
         <Button disabled={isUploading} variant="secondary">
