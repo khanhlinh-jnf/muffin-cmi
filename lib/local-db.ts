@@ -9,8 +9,13 @@ const FULL_DIR = path.join(DATA_DIR, 'full');
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 });
 
+interface Chunk {
+  text: string;
+  [key: string]: any;
+}
+
 export const localDb = {
-  saveTranscripts: (meetingId: string, chunks: any[]) => {
+  saveTranscripts: (meetingId: string, chunks: Chunk[]) => {
     try {
       const rawPath = path.join(RAW_DIR, `${meetingId}.json`);
       fs.writeFileSync(rawPath, JSON.stringify(chunks, null, 2), 'utf-8');
