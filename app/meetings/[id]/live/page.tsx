@@ -476,8 +476,8 @@ export default function LiveSimulationPage({ params }: PageProps) {
         </div>
       </main>
 
-      {/* Footer Actions*/}
-      <footer className="sticky bottom-0 z-50 border-t bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
+      {/* FOOTER */}
+      <footer className="sticky bottom-0 z-50 border-t border-slate-200 bg-white/80 backdrop-blur">
         <div className="flex h-16 items-center justify-between px-6">
           <div className="text-sm text-muted-foreground">
             <span className="font-medium">Simulation Progress:</span>{" "}
