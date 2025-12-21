@@ -3,14 +3,16 @@
 export type SessionUser = {
   id: string;
   email: string;
-  name: string;
+  fullName: string;
+  role: string;
 };
 
 // Mock user cố định
 const demoUser: SessionUser = {
   id: "demo-user",
   email: "demo@example.com",
-  name: "Demo User",
+  fullName: "Demo User",
+  role: "HOST",
 };
 
 // Login: kiểm tra email/password rất đơn giản
@@ -27,17 +29,19 @@ export function signToken(user: SessionUser) {
 }
 
 // Đọc user từ token (mock)
-export async function getUserFromToken(_token: string | undefined | null) {
+export async function getUserFromToken(
+  _token: string | undefined | null,
+): Promise<SessionUser | null> {
   // Bỏ qua validate token, luôn trả demoUser nếu có token
   if (!_token) return null;
   return demoUser;
 }
 
 // Nếu chỗ khác cần requireUser / requireUserId
-export async function requireUser() {
+export async function requireUser(): Promise<SessionUser> {
   return demoUser;
 }
 
-export async function requireUserId() {
+export async function requireUserId(): Promise<string> {
   return demoUser.id;
 }
