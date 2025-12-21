@@ -1,0 +1,11 @@
+
+> muffin-cmi@0.1.0 build D:\UNI_STUDY\Year3\Semester1\VNPT-AI\muffin-cmi
+> next build
+
+   ▲ Next.js 16.0.10 (Turbopack)
+   - Environments: .env
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 3.8s
+   Running TypeScript ...
+ ELIFECYCLE  Command failed with exit code 1.

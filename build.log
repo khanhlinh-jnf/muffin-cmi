@@ -1,0 +1,32 @@
+
+> muffin-cmi@0.1.0 build D:\UNI_STUDY\Year3\Semester1\VNPT-AI\muffin-cmi
+> next build
+
+ ⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of D:\UNI_STUDY\Year3\Semester1\VNPT-AI\pnpm-lock.yaml as the root directory.
+ To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+ Detected additional lockfiles: 
+   * D:\UNI_STUDY\Year3\Semester1\VNPT-AI\muffin-cmi\pnpm-lock.yaml
+
+   ▲ Next.js 16.0.10 (Turbopack)
+   - Environments: .env
+
+ ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 3.7s
+   Running TypeScript ...
+Failed to compile.
+
+./components/ui/command.tsx:4:45
+Type error: Cannot find module 'cmdk' or its corresponding type declarations.
+
+[0m [90m 2 |[39m
+ [90m 3 |[39m [36mimport[39m [33m*[39m [36mas[39m [33mReact[39m [36mfrom[39m [32m'react'[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { [33mCommand[39m [36mas[39m [33mCommandPrimitive[39m } [36mfrom[39m [32m'cmdk'[39m
+ [90m   |[39m                                             [31m[1m^[22m[39m
+ [90m 5 |[39m [36mimport[39m { [33mSearchIcon[39m } [36mfrom[39m [32m'lucide-react'[39m
+ [90m 6 |[39m
+ [90m 7 |[39m [36mimport[39m { cn } [36mfrom[39m [32m'@/lib/utils'[39m[0m
+Next.js build worker exited with code: 1 and signal: null
+ ELIFECYCLE  Command failed with exit code 1.
