@@ -1,29 +1,5 @@
 // app/api/meetings/[id]/ask/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs/promises";
-import path from "path";
-
-// Đọc transcript từ file local (giống log bạn gửi)
-async function getFullTranscript(meetingId: string) {
-  const baseDir = "D:\\UNI_STUDY\\Year3\\Semester1\\VNPT-AI\\muffin-cmi";
-  const transcriptPath = path.join(
-    baseDir,
-    "data",
-    "transcripts",
-    "full",
-    `${meetingId}.txt`,
-  );
-
-  console.log("Transcript path:", transcriptPath);
-  try {
-    const content = await fs.readFile(transcriptPath, "utf8");
-    console.log("Transcript length:", content.length);
-    return content;
-  } catch (e) {
-    console.error("Read transcript error:", e);
-    return "";
-  }
-}
 
 // Gọi SmartBot streaming
 const SMARTBOT_URL = "https://assistant-stream.vnpt.vn/v1/conversation";
@@ -66,7 +42,7 @@ async function smartbotConversation(
     headers: {
       Authorization: `Bearer ${ACCESS_TOKEN}`,
       "Token-id": TOKEN_ID,
-      "Token-key": TOKEN_KEY,
+      "Token-key": TOKEN_KEY!,
       "Content-Type": "application/json",
       Accept: "text/event-stream",
     },
@@ -84,7 +60,7 @@ async function smartbotConversation(
     .filter(Boolean);
 
   const cardTexts: string[] = [];
-  let lastObject: Record<string, unknown> | null = null;
+  let lastObject: any = null;
 
   for (const jsonStr of chunks) {
     try {
@@ -93,14 +69,10 @@ async function smartbotConversation(
 
       const cardData = obj.object?.sb?.card_data ?? [];
       for (const card of cardData) {
-        if (typeof card.text === "string") {
-          cardTexts.push(card.text);
-        }
+        if (typeof card.text === "string") cardTexts.push(card.text);
         if (Array.isArray(card.elements)) {
           for (const el of card.elements) {
-            if (typeof el.text === "string") {
-              cardTexts.push(el.text);
-            }
+            if (typeof el.text === "string") cardTexts.push(el.text);
           }
         }
       }
@@ -128,12 +100,19 @@ async function smartbotConversation(
   return { answer, raw: lastObject };
 }
 
-// Next.js Route handler
+// TODO: hiện đang mock transcript để build qua Vercel.
+// Sau này bạn thay bằng đọc từ DB / file nếu cần.
+async function getFullTranscript(meetingId: string) {
+  console.log("getFullTranscript mock for meeting:", meetingId);
+  return "Transcript mock (chưa nối DB / file trên Vercel).";
+}
+
+// Next.js Route handler (kiểu mới)
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } },
+  context: { params: Promise<{ id: string }> },
 ) {
-  const id = params.id;
+  const { id } = await context.params;
   const { question } = await req.json();
 
   console.log(">> getFullTranscript meetingId:", id);
@@ -169,6 +148,6 @@ YÊU CẦU:
 
   return NextResponse.json({
     answer: result.answer,
-    sources: [], // có thể bổ sung sau nếu làm RAG nhiều chunk
+    sources: [],
   });
 }
