@@ -1,114 +1,132 @@
 "use client";
 
 import { useState } from "react";
+import { useParams } from "next/navigation";
+import Link from "next/link";
+
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useParams } from "next/navigation";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Send, Sparkles, ExternalLink, Loader2 } from "lucide-react";
-import Link from "next/link";
+import {
+  ArrowLeft,
+  Send,
+  Sparkles,
+  ExternalLink,
+  Loader2,
+} from "lucide-react";
 
-// Mock data
-const mockPastQuestions = [
-  "What were the main decisions?",
-  "List all action items assigned to me",
-  "When is the next sprint review?",
-  "Who disagreed with the timeline?",
-  "Summarize the discussion about pricing",
-];
+type Source = {
+  text: string;
+  timestamp: string;
+};
 
-const mockMessages = [
-  {
-    id: 1,
-    role: "user" as const,
-    content: "What were the key decisions made in this meeting?",
-    timestamp: "10:23 AM",
-  },
-  {
-    id: 2,
-    role: "assistant" as const,
-    content:
-      "Based on the meeting transcript, here are the key decisions:\n\n1. **Product Launch Date**: The team agreed to move the launch date from March 15 to March 30 to allow for additional QA testing.\n\n2. **Budget Allocation**: Approved an additional $50K for marketing campaigns.\n\n3. **Resource Assignment**: Sarah will lead the design review, Mike will handle backend integration.",
-    timestamp: "10:23 AM",
-    sources: [
-      { text: "Discussion about launch timeline", timestamp: "12:45" },
-      { text: "Budget approval segment", timestamp: "28:30" },
-      { text: "Team assignments section", timestamp: "42:15" },
-    ],
-  },
-  {
-    id: 3,
-    role: "user" as const,
-    content: "Who raised concerns about the timeline?",
-    timestamp: "10:25 AM",
-  },
-  {
-    id: 4,
-    role: "assistant" as const,
-    content:
-      "Emily Rodriguez raised concerns about the original March 15 timeline. She mentioned that the QA team needs at least 2 additional weeks to properly test the new features, especially the payment integration module. David Kim supported this concern and suggested the March 30 date instead.",
-    timestamp: "10:25 AM",
-    sources: [
-      { text: "Emily's timeline concern", timestamp: "15:20" },
-      { text: "David's support statement", timestamp: "16:45" },
-    ],
-  },
-];
+type APISource = {
+  snippet?: string;
+  text?: string;
+  timestamp?: string;
+};
 
-const suggestionChips = [
-  "Summarize all decisions",
-  "List my action items",
-  "What were the main topics?",
-  "Show disagreements",
+type ChatMessage = {
+  id: number;
+  role: "user" | "assistant";
+  content: string;
+  timestamp: string;
+  sources?: Source[];
+};
+
+const suggestionChips: string[] = [
+  "Tóm tắt các quyết định chính",
+  "Liệt kê các action items của tôi",
+  "Sếp nói gì về deadline?",
+  "Những rủi ro chính là gì?",
 ];
 
 export default function ChatbotPage() {
   const { id } = useParams<{ id: string }>();
-  const [scope, setScope] = useState("single");
+
+  const [scope, setScope] = useState<"single" | "multiple">("single");
   const [inputValue, setInputValue] = useState("");
   const [isThinking, setIsThinking] = useState(false);
-  const [messages, setMessages] = useState(mockMessages);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
 
-  const handleSend = () => {
-    if (!inputValue.trim()) return;
+  const handleSend = async () => {
+    if (!inputValue.trim() || !id) return;
 
-    // Add user message
-    const newUserMessage = {
-      id: messages.length + 1,
-      role: "user" as const,
-      content: inputValue,
-      timestamp: new Date().toLocaleTimeString("en-US", {
+    const question = inputValue.trim();
+
+    const userMessage: ChatMessage = {
+      id: Date.now(),
+      role: "user",
+      content: question,
+      timestamp: new Date().toLocaleTimeString("vi-VN", {
         hour: "2-digit",
         minute: "2-digit",
       }),
     };
-    setMessages([...messages, newUserMessage]);
-    setInputValue("");
 
-    // Show thinking state
+    setMessages((prev) => [...prev, userMessage]);
+    setInputValue("");
     setIsThinking(true);
 
-    // Simulate bot response
-    setTimeout(() => {
-      const newBotMessage = {
-        id: messages.length + 2,
-        role: "assistant" as const,
-        content:
-          "This is a mock response. In production, this would show the AI-generated answer based on meeting transcripts.",
-        timestamp: new Date().toLocaleTimeString("en-US", {
+    try {
+      console.log("=== Calling QA API ===", `/api/meetings/${id}/ask`);
+
+      const res = await fetch(`/api/meetings/${id}/ask`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question, scope }),
+      });
+
+      const data = await res.json();
+      console.log("QA response:", data);
+
+      if (!res.ok) {
+        throw new Error(data.error || `API error: ${res.status}`);
+      }
+
+      const sources: Source[] = (data.sources ?? []).map((s: APISource) => ({
+        text: s.snippet ?? s.text ?? "Đoạn liên quan trong cuộc họp",
+        timestamp:
+          typeof s.timestamp === "string"
+            ? s.timestamp
+            : "00:00",
+      }));
+
+      const botMessage: ChatMessage = {
+        id: Date.now() + 1,
+        role: "assistant",
+        content: data.answer || "Không có câu trả lời phù hợp.",
+        timestamp: new Date().toLocaleTimeString("vi-VN", {
           hour: "2-digit",
           minute: "2-digit",
         }),
-        sources: [{ text: "Relevant segment", timestamp: "25:30" }],
+        sources: sources.length ? sources : undefined,
       };
-      setMessages((prev) => [...prev, newBotMessage]);
+
+      setMessages((prev) => [...prev, botMessage]);
+    } catch (error) {
+      console.error("Error calling QA API:", error);
+
+      const errorMessage: ChatMessage = {
+        id: Date.now() + 2,
+        role: "assistant",
+        content:
+          "Có lỗi xảy ra khi gọi API hỏi đáp. Vui lòng thử lại sau ít phút.",
+        timestamp: new Date().toLocaleTimeString("vi-VN", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      };
+
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
       setIsThinking(false);
-    }, 2000);
+    }
   };
 
   const handleSuggestionClick = (suggestion: string) => {
@@ -132,7 +150,7 @@ export default function ChatbotPage() {
             <div>
               <h1 className="font-semibold">Meeting Chatbot</h1>
               <p className="text-xs text-muted-foreground">
-                Q4 Product Strategy Review
+                Hỏi đáp dựa trên transcript cuộc họp
               </p>
             </div>
           </div>
@@ -143,63 +161,39 @@ export default function ChatbotPage() {
         {/* Left Sidebar */}
         <aside className="hidden lg:flex lg:w-80 flex-col border-r bg-muted/30">
           <div className="flex-1 overflow-auto p-6 space-y-6">
-            {/* Scope Section */}
+            {/* Scope */}
             <Card>
               <CardContent className="p-4 space-y-4">
                 <div>
-                  <h3 className="font-semibold mb-3">Scope</h3>
-                  <RadioGroup value={scope} onValueChange={setScope}>
+                  <h3 className="font-semibold mb-3">Phạm vi tìm kiếm</h3>
+                  <RadioGroup
+                    value={scope}
+                    onValueChange={(v) =>
+                      setScope(v as "single" | "multiple")
+                    }
+                  >
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="single" id="single" />
                       <Label htmlFor="single" className="cursor-pointer">
-                        This meeting only
+                        Chỉ cuộc họp này
                       </Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="multiple" id="multiple" />
                       <Label htmlFor="multiple" className="cursor-pointer">
-                        Multiple meetings
+                        Nhiều cuộc họp (chưa triển khai)
                       </Label>
                     </div>
                   </RadioGroup>
                 </div>
-
-                {/* Filters for multiple meetings */}
-                {scope === "multiple" && (
-                  <div className="space-y-3 pt-3 border-t">
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="dateRange"
-                        className="text-sm font-medium"
-                      >
-                        Date Range
-                      </Label>
-                      <Input
-                        id="dateRange"
-                        type="text"
-                        placeholder="Last 30 days"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="project" className="text-sm font-medium">
-                        Project
-                      </Label>
-                      <Input
-                        id="project"
-                        type="text"
-                        placeholder="All projects"
-                      />
-                    </div>
-                  </div>
-                )}
               </CardContent>
             </Card>
 
-            {/* Past Questions */}
+            {/* Gợi ý nhanh */}
             <div>
-              <h3 className="font-semibold mb-3 px-2">Recent Questions</h3>
+              <h3 className="font-semibold mb-3 px-2">Gợi ý câu hỏi</h3>
               <div className="space-y-1">
-                {mockPastQuestions.map((question, idx) => (
+                {suggestionChips.map((question, idx) => (
                   <Button
                     key={idx}
                     variant="ghost"
@@ -219,11 +213,24 @@ export default function ChatbotPage() {
           {/* Messages Area */}
           <ScrollArea className="flex-1 p-6">
             <div className="max-w-4xl mx-auto space-y-6">
+              {messages.length === 0 && (
+                <div className="text-center text-muted-foreground py-12">
+                  <p className="text-lg font-medium mb-2">
+                    Hãy bắt đầu bằng một câu hỏi về cuộc họp
+                  </p>
+                  <p className="text-sm">
+                    Ví dụ: &quot;Sếp chốt deadline dự án X là ngày nào?&quot;
+                  </p>
+                </div>
+              )}
+
               {messages.map((message) => (
                 <div
                   key={message.id}
                   className={`flex gap-3 ${
-                    message.role === "user" ? "flex-row-reverse" : "flex-row"
+                    message.role === "user"
+                      ? "flex-row-reverse"
+                      : "flex-row"
                   }`}
                 >
                   {/* Avatar */}
@@ -266,31 +273,33 @@ export default function ChatbotPage() {
                       </p>
 
                       {/* Sources */}
-                      {message.role === "assistant" && message.sources && (
-                        <div className="mt-4 space-y-2 border-t pt-3">
-                          <p className="text-xs font-medium text-muted-foreground">
-                            Sources:
-                          </p>
-                          {message.sources.map((source, idx) => (
-                            <div
-                              key={idx}
-                              className="flex items-center justify-between gap-2 rounded-md bg-background p-2"
-                            >
-                              <span className="text-xs flex-1">
-                                {source.text}
-                              </span>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-7 gap-1 text-xs shrink-0"
+                      {message.role === "assistant" &&
+                        message.sources &&
+                        message.sources.length > 0 && (
+                          <div className="mt-4 space-y-2 border-t pt-3">
+                            <p className="text-xs font-medium text-muted-foreground">
+                              Trích từ transcript:
+                            </p>
+                            {message.sources.map((source, idx) => (
+                              <div
+                                key={idx}
+                                className="flex items-center justify-between gap-2 rounded-md bg-background p-2"
                               >
-                                <ExternalLink className="h-3 w-3" />
-                                Open at {source.timestamp}
-                              </Button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
+                                <span className="text-xs flex-1">
+                                  {source.text}
+                                </span>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-7 gap-1 text-xs shrink-0"
+                                >
+                                  <ExternalLink className="h-3 w-3" />
+                                  Mở tại {source.timestamp}
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                     </div>
                   </div>
                 </div>
@@ -308,7 +317,7 @@ export default function ChatbotPage() {
                     <div className="flex items-center gap-2">
                       <Loader2 className="h-4 w-4 animate-spin" />
                       <span className="text-sm text-muted-foreground">
-                        Thinking...
+                        Đang suy nghĩ...
                       </span>
                     </div>
                   </div>
@@ -339,8 +348,8 @@ export default function ChatbotPage() {
               {/* Input Bar */}
               <div className="flex gap-2">
                 <Textarea
-                  placeholder="Ask a question about this meeting..."
-                  className="min-h-15 resize-none"
+                  placeholder="Hỏi về nội dung cuộc họp..."
+                  className="min-h 15 resize-none"
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyDown={(e) => {
@@ -352,8 +361,9 @@ export default function ChatbotPage() {
                 />
                 <Button
                   size="icon"
-                  className="h-15 w-15 shrink-0"
+                  className="h-15] w-15 shrink-0"
                   onClick={handleSend}
+                  disabled={isThinking || !inputValue.trim()}
                 >
                   <Send className="h-5 w-5" />
                 </Button>
