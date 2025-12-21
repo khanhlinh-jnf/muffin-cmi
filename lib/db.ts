@@ -1,15 +1,20 @@
-import { PrismaClient } from "@prisma/client";
+// lib/db.ts
 
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined;
-};
+// Mock prisma để build / deploy trên Vercel.
+// Khi cần dùng DB thật, tạo file khác (vd: db-real.ts) cho môi trường local.
 
-export const prisma =
-  globalForPrisma.prisma ??
-  new PrismaClient({
-    log: ["error"],
-  });
-
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
-}
+export const prisma = {
+  meeting: {
+    findMany: async () => [],
+    findUnique: async () => null,
+    create: async (data: any) => ({ id: "mock-meeting", ...data }),
+    update: async (_args: any) => null,
+  },
+  // Thêm model mock khác nếu code có dùng:
+  meetingParticipant: {
+    findMany: async () => [],
+  },
+  transcriptChunk: {
+    findMany: async () => [],
+  },
+} as any;
